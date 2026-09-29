@@ -67,9 +67,7 @@ export const productImages = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [
-    index("product_images_product_id_idx").on(table.productId),
-  ],
+  (table) => [index("product_images_product_id_idx").on(table.productId)],
 );
 
 export const categories = pgTable("categories", {
@@ -157,3 +155,155 @@ export const productVariants = pgTable(
     index("product_variants_product_id_idx").on(table.productId),
   ],
 );
+
+export const orderStatusEnum = pgEnum("order_status", [
+  "pending",
+  "paid",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+]);
+
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "pending",
+  "success",
+  "failed",
+  "abandoned",
+  "reversed",
+]);
+
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    orderNumber: text("order_number").notNull(),
+    publicToken: uuid("public_token").defaultRandom().notNull(),
+
+    email: text("email").notNull(),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    phone: text("phone").notNull(),
+
+    addressLine1: text("address_line_1").notNull(),
+    addressLine2: text("address_line_2"),
+    city: text("city").notNull(),
+    state: text("state").notNull(),
+    country: text("country").notNull().default("Nigeria"),
+
+    subtotalKobo: integer("subtotal_kobo").notNull(),
+    shippingKobo: integer("shipping_kobo").notNull(),
+    totalKobo: integer("total_kobo").notNull(),
+    currency: text("currency").notNull().default("NGN"),
+
+    status: orderStatusEnum("status").notNull().default("pending"),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+
+    paidAt: timestamp("paid_at", {
+      withTimezone: true,
+    }),
+  },
+  (table) => [
+    uniqueIndex("orders_order_number_unique").on(table.orderNumber),
+    uniqueIndex("orders_public_token_unique").on(table.publicToken),
+    index("orders_email_idx").on(table.email),
+    index("orders_status_idx").on(table.status),
+  ],
+);
+
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, {
+        onDelete: "cascade",
+      }),
+
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id),
+
+    variantId: uuid("variant_id")
+      .notNull()
+      .references(() => productVariants.id),
+
+    // Historical snapshots. These must not change when a product is edited.
+    productName: text("product_name").notNull(),
+    productSlug: text("product_slug").notNull(),
+    sku: text("sku").notNull(),
+    size: text("size").notNull(),
+    color: text("color").notNull(),
+
+    unitPriceKobo: integer("unit_price_kobo").notNull(),
+    quantity: integer("quantity").notNull(),
+    lineTotalKobo: integer("line_total_kobo").notNull(),
+  },
+  (table) => [
+    index("order_items_order_id_idx").on(table.orderId),
+    index("order_items_variant_id_idx").on(table.variantId),
+  ],
+);
+
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, {
+        onDelete: "cascade",
+      }),
+
+    provider: text("provider").notNull().default("paystack"),
+    reference: text("reference").notNull(),
+    status: paymentStatusEnum("status").notNull().default("pending"),
+    amountKobo: integer("amount_kobo").notNull(),
+    currency: text("currency").notNull().default("NGN"),
+    providerTransactionId: text("provider_transaction_id"),
+    channel: text("channel"),
+    rawResponse: text("raw_response"),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("payments_reference_unique").on(table.reference),
+    index("payments_order_id_idx").on(table.orderId),
+  ],
+);
+
+export const processedWebhooks = pgTable("processed_webhooks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  provider: text("provider").notNull(),
+  eventKey: text("event_key").notNull().unique(),
+  eventType: text("event_type").notNull(),
+  receivedAt: timestamp("received_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .notNull(),
+});
