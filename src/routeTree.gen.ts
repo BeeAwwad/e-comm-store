@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as CheckoutIndexRouteImport } from './routes/checkout/index'
 import { Route as CheckoutCallbackRouteImport } from './routes/checkout/callback'
 import { Route as OrderPublicTokenRouteImport } from './routes/order/$publicToken'
 import { Route as ShopIndexRouteImport } from './routes/shop/index'
@@ -33,6 +34,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CheckoutRoute,
 } as any)
 const CheckoutCallbackRoute = CheckoutCallbackRouteImport.update({
   id: '/callback',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
+  '/checkout/': typeof CheckoutIndexRoute
   '/shop/': typeof ShopIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/webhooks/paystack': typeof ApiWebhooksPaystackRoute
@@ -79,10 +86,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
-  '/checkout': typeof CheckoutRouteWithChildren
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
+  '/checkout': typeof CheckoutIndexRoute
   '/shop': typeof ShopIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/webhooks/paystack': typeof ApiWebhooksPaystackRoute
@@ -95,6 +102,7 @@ export interface FileRoutesById {
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
+  '/checkout/': typeof CheckoutIndexRoute
   '/shop/': typeof ShopIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/webhooks/paystack': typeof ApiWebhooksPaystackRoute
@@ -108,6 +116,7 @@ export interface FileRouteTypes {
     | '/checkout/callback'
     | '/order/$publicToken'
     | '/shop/$productSlug'
+    | '/checkout/'
     | '/shop/'
     | '/api/auth/$'
     | '/api/webhooks/paystack'
@@ -115,10 +124,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/cart'
-    | '/checkout'
     | '/checkout/callback'
     | '/order/$publicToken'
     | '/shop/$productSlug'
+    | '/checkout'
     | '/shop'
     | '/api/auth/$'
     | '/api/webhooks/paystack'
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/checkout/callback'
     | '/order/$publicToken'
     | '/shop/$productSlug'
+    | '/checkout/'
     | '/shop/'
     | '/api/auth/$'
     | '/api/webhooks/paystack'
@@ -168,6 +178,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/checkout/': {
+      id: '/checkout/'
+      path: '/'
+      fullPath: '/checkout/'
+      preLoaderRoute: typeof CheckoutIndexRouteImport
+      parentRoute: typeof CheckoutRoute
     }
     '/checkout/callback': {
       id: '/checkout/callback'
@@ -216,10 +233,12 @@ declare module '@tanstack/react-router' {
 
 interface CheckoutRouteChildren {
   CheckoutCallbackRoute: typeof CheckoutCallbackRoute
+  CheckoutIndexRoute: typeof CheckoutIndexRoute
 }
 
 const CheckoutRouteChildren: CheckoutRouteChildren = {
   CheckoutCallbackRoute: CheckoutCallbackRoute,
+  CheckoutIndexRoute: CheckoutIndexRoute,
 }
 
 const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(

@@ -1,12 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { removeCartItem, updateCartQuantity } from "#/features/cart/cart-store";
 import { useCart } from "#/features/cart/use-cart";
 import { formatNaira } from "#/lib/utils";
 
 export const Route = createFileRoute("/cart")({
-  component: CartPage,
+  component: CartRoute,
 });
+
+function CartRoute() {
+  return (
+    <ClientOnly fallback={<CartSkeleton />}>
+      <CartPage />
+    </ClientOnly>
+  );
+}
 
 function CartPage() {
   const cart = useCart();
@@ -136,6 +144,26 @@ function CartPage() {
           </aside>
         </div>
       )}
+    </main>
+  );
+}
+
+function CartSkeleton() {
+  return (
+    <main className="min-h-screen bg-[#080808] px-4 pb-24 pt-24 text-white md:px-8 lg:px-12">
+      <h1 className="mb-12 text-5xl font-black uppercase tracking-[-0.04em]">
+        Cart
+      </h1>
+
+      <div className="grid gap-12 lg:grid-cols-[1fr_380px]">
+        <section className="space-y-5">
+          {[1, 2].map((item) => (
+            <div key={item} className="h-40 animate-pulse bg-white/5" />
+          ))}
+        </section>
+
+        <aside className="h-56 animate-pulse border border-white/10 bg-white/5" />
+      </div>
     </main>
   );
 }

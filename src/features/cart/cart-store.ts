@@ -20,10 +20,27 @@ type CartState = {
 
 const STORAGE_KEY = "clothing-store-cart-v1";
 
-export const cartStore = new Store<CartState>({
-  hydrated: false,
-  items: [],
-});
+function getStoredItems(): CartItem[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+
+    return raw ? (JSON.parse(raw) as CartItem[]) : [];
+  } catch {
+    window.localStorage.removeItem(STORAGE_KEY);
+    return [];
+  }
+}
+
+const initialState: CartState =
+  typeof window === "undefined"
+    ? { hydrated: false, items: [] }
+    : { hydrated: true, items: getStoredItems() };
+
+export const cartStore = new Store<CartState>(initialState);
 
 function save(items: CartItem[]) {
   if (typeof window === "undefined") return;
@@ -35,22 +52,10 @@ export function hydrateCart() {
   if (typeof window === "undefined") return;
   if (cartStore.state.hydrated) return;
 
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const items = raw ? (JSON.parse(raw) as CartItem[]) : [];
-
-    cartStore.setState(() => ({
-      hydrated: true,
-      items,
-    }));
-  } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
-
-    cartStore.setState(() => ({
-      hydrated: true,
-      items: [],
-    }));
-  }
+  cartStore.setState(() => ({
+    hydrated: true,
+    items: getStoredItems(),
+  }));
 }
 
 export function addCartItem(item: CartItem) {

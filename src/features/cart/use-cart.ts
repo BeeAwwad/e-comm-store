@@ -19,8 +19,8 @@ export function useCart() {
 
   return {
     items,
+    hydrated,
     itemCount,
     subtotalKobo,
-    hydrated,
   };
 }
