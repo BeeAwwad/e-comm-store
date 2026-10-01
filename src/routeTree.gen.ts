@@ -10,19 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as AdminAuthenticatedRouteImport } from './routes/admin/_authenticated'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout/index'
 import { Route as CheckoutCallbackRouteImport } from './routes/checkout/callback'
 import { Route as OrderPublicTokenRouteImport } from './routes/order/$publicToken'
 import { Route as ShopIndexRouteImport } from './routes/shop/index'
 import { Route as ShopProductSlugRouteImport } from './routes/shop/$productSlug'
+import { Route as AdminAuthenticatedIndexRouteImport } from './routes/admin/_authenticated/index'
+import { Route as AdminAuthenticatedOrdersRouteImport } from './routes/admin/_authenticated/orders'
+import { Route as AdminAuthenticatedProductsRouteImport } from './routes/admin/_authenticated/products'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiWebhooksPaystackRouteImport } from './routes/api/webhooks/paystack'
+import { Route as AdminAuthenticatedProductsIndexRouteImport } from './routes/admin/_authenticated/products/index'
+import { Route as AdminAuthenticatedProductsProductIdRouteImport } from './routes/admin/_authenticated/products/$productId'
+import { Route as AdminAuthenticatedProductsNewRouteImport } from './routes/admin/_authenticated/products/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -34,6 +48,15 @@ const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuthenticatedRoute = AdminAuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
 } as any)
 const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
   id: '/',
@@ -60,6 +83,23 @@ const ShopProductSlugRoute = ShopProductSlugRouteImport.update({
   path: '/shop/$productSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAuthenticatedIndexRoute = AdminAuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminAuthenticatedRoute,
+} as any)
+const AdminAuthenticatedOrdersRoute =
+  AdminAuthenticatedOrdersRouteImport.update({
+    id: '/orders',
+    path: '/orders',
+    getParentRoute: () => AdminAuthenticatedRoute,
+  } as any)
+const AdminAuthenticatedProductsRoute =
+  AdminAuthenticatedProductsRouteImport.update({
+    id: '/products',
+    path: '/products',
+    getParentRoute: () => AdminAuthenticatedRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -70,83 +110,148 @@ const ApiWebhooksPaystackRoute = ApiWebhooksPaystackRouteImport.update({
   path: '/api/webhooks/paystack',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAuthenticatedProductsIndexRoute =
+  AdminAuthenticatedProductsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AdminAuthenticatedProductsRoute,
+  } as any)
+const AdminAuthenticatedProductsProductIdRoute =
+  AdminAuthenticatedProductsProductIdRouteImport.update({
+    id: '/$productId',
+    path: '/$productId',
+    getParentRoute: () => AdminAuthenticatedProductsRoute,
+  } as any)
+const AdminAuthenticatedProductsNewRoute =
+  AdminAuthenticatedProductsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AdminAuthenticatedProductsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/admin/orders': typeof AdminAuthenticatedOrdersRoute
+  '/admin/products': typeof AdminAuthenticatedProductsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/webhooks/paystack': typeof ApiWebhooksPaystackRoute
+  '/admin/': typeof AdminAuthenticatedIndexRoute
+  '/admin/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
+  '/admin/products/new': typeof AdminAuthenticatedProductsNewRoute
+  '/admin/products/': typeof AdminAuthenticatedProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminAuthenticatedIndexRoute
   '/cart': typeof CartRoute
+  '/admin/login': typeof AdminLoginRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout': typeof CheckoutIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/admin/orders': typeof AdminAuthenticatedOrdersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/webhooks/paystack': typeof ApiWebhooksPaystackRoute
+  '/admin/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
+  '/admin/products/new': typeof AdminAuthenticatedProductsNewRoute
+  '/admin/products': typeof AdminAuthenticatedProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRouteWithChildren
+  '/admin/_authenticated': typeof AdminAuthenticatedRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/admin/_authenticated/orders': typeof AdminAuthenticatedOrdersRoute
+  '/admin/_authenticated/products': typeof AdminAuthenticatedProductsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/webhooks/paystack': typeof ApiWebhooksPaystackRoute
+  '/admin/_authenticated/': typeof AdminAuthenticatedIndexRoute
+  '/admin/_authenticated/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
+  '/admin/_authenticated/products/new': typeof AdminAuthenticatedProductsNewRoute
+  '/admin/_authenticated/products/': typeof AdminAuthenticatedProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/cart'
     | '/checkout'
+    | '/admin/login'
     | '/checkout/callback'
     | '/order/$publicToken'
     | '/shop/$productSlug'
     | '/checkout/'
     | '/shop/'
+    | '/admin/orders'
+    | '/admin/products'
     | '/api/auth/$'
     | '/api/webhooks/paystack'
+    | '/admin/'
+    | '/admin/products/$productId'
+    | '/admin/products/new'
+    | '/admin/products/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/cart'
+    | '/admin/login'
     | '/checkout/callback'
     | '/order/$publicToken'
     | '/shop/$productSlug'
     | '/checkout'
     | '/shop'
+    | '/admin/orders'
     | '/api/auth/$'
     | '/api/webhooks/paystack'
+    | '/admin/products/$productId'
+    | '/admin/products/new'
+    | '/admin/products'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/cart'
     | '/checkout'
+    | '/admin/_authenticated'
+    | '/admin/login'
     | '/checkout/callback'
     | '/order/$publicToken'
     | '/shop/$productSlug'
     | '/checkout/'
     | '/shop/'
+    | '/admin/_authenticated/orders'
+    | '/admin/_authenticated/products'
     | '/api/auth/$'
     | '/api/webhooks/paystack'
+    | '/admin/_authenticated/'
+    | '/admin/_authenticated/products/$productId'
+    | '/admin/_authenticated/products/new'
+    | '/admin/_authenticated/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRouteWithChildren
   OrderPublicTokenRoute: typeof OrderPublicTokenRoute
@@ -165,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cart': {
       id: '/cart'
       path: '/cart'
@@ -178,6 +290,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/_authenticated': {
+      id: '/admin/_authenticated'
+      path: ''
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminAuthenticatedRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/checkout/': {
       id: '/checkout/'
@@ -214,6 +340,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopProductSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/_authenticated/': {
+      id: '/admin/_authenticated/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminAuthenticatedIndexRouteImport
+      parentRoute: typeof AdminAuthenticatedRoute
+    }
+    '/admin/_authenticated/orders': {
+      id: '/admin/_authenticated/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminAuthenticatedOrdersRouteImport
+      parentRoute: typeof AdminAuthenticatedRoute
+    }
+    '/admin/_authenticated/products': {
+      id: '/admin/_authenticated/products'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminAuthenticatedProductsRouteImport
+      parentRoute: typeof AdminAuthenticatedRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -228,8 +375,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWebhooksPaystackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/_authenticated/products/': {
+      id: '/admin/_authenticated/products/'
+      path: '/'
+      fullPath: '/admin/products/'
+      preLoaderRoute: typeof AdminAuthenticatedProductsIndexRouteImport
+      parentRoute: typeof AdminAuthenticatedProductsRoute
+    }
+    '/admin/_authenticated/products/$productId': {
+      id: '/admin/_authenticated/products/$productId'
+      path: '/$productId'
+      fullPath: '/admin/products/$productId'
+      preLoaderRoute: typeof AdminAuthenticatedProductsProductIdRouteImport
+      parentRoute: typeof AdminAuthenticatedProductsRoute
+    }
+    '/admin/_authenticated/products/new': {
+      id: '/admin/_authenticated/products/new'
+      path: '/new'
+      fullPath: '/admin/products/new'
+      preLoaderRoute: typeof AdminAuthenticatedProductsNewRouteImport
+      parentRoute: typeof AdminAuthenticatedProductsRoute
+    }
   }
 }
+
+interface AdminAuthenticatedProductsRouteChildren {
+  AdminAuthenticatedProductsProductIdRoute: typeof AdminAuthenticatedProductsProductIdRoute
+  AdminAuthenticatedProductsNewRoute: typeof AdminAuthenticatedProductsNewRoute
+  AdminAuthenticatedProductsIndexRoute: typeof AdminAuthenticatedProductsIndexRoute
+}
+
+const AdminAuthenticatedProductsRouteChildren: AdminAuthenticatedProductsRouteChildren =
+  {
+    AdminAuthenticatedProductsProductIdRoute:
+      AdminAuthenticatedProductsProductIdRoute,
+    AdminAuthenticatedProductsNewRoute: AdminAuthenticatedProductsNewRoute,
+    AdminAuthenticatedProductsIndexRoute: AdminAuthenticatedProductsIndexRoute,
+  }
+
+const AdminAuthenticatedProductsRouteWithChildren =
+  AdminAuthenticatedProductsRoute._addFileChildren(
+    AdminAuthenticatedProductsRouteChildren,
+  )
+
+interface AdminAuthenticatedRouteChildren {
+  AdminAuthenticatedOrdersRoute: typeof AdminAuthenticatedOrdersRoute
+  AdminAuthenticatedProductsRoute: typeof AdminAuthenticatedProductsRouteWithChildren
+  AdminAuthenticatedIndexRoute: typeof AdminAuthenticatedIndexRoute
+}
+
+const AdminAuthenticatedRouteChildren: AdminAuthenticatedRouteChildren = {
+  AdminAuthenticatedOrdersRoute: AdminAuthenticatedOrdersRoute,
+  AdminAuthenticatedProductsRoute: AdminAuthenticatedProductsRouteWithChildren,
+  AdminAuthenticatedIndexRoute: AdminAuthenticatedIndexRoute,
+}
+
+const AdminAuthenticatedRouteWithChildren =
+  AdminAuthenticatedRoute._addFileChildren(AdminAuthenticatedRouteChildren)
+
+interface AdminRouteChildren {
+  AdminAuthenticatedRoute: typeof AdminAuthenticatedRouteWithChildren
+  AdminLoginRoute: typeof AdminLoginRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuthenticatedRoute: AdminAuthenticatedRouteWithChildren,
+  AdminLoginRoute: AdminLoginRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface CheckoutRouteChildren {
   CheckoutCallbackRoute: typeof CheckoutCallbackRoute
@@ -247,6 +461,7 @@ const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRouteWithChildren,
   OrderPublicTokenRoute: OrderPublicTokenRoute,
