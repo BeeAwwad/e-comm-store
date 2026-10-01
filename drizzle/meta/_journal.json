@@ -22,6 +22,13 @@
       "when": 1790776937070,
       "tag": "0002_wild_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790865885058,
+      "tag": "0003_add_order_fulfillment_fields",
+      "breakpoints": true
     }
   ]
 }

@@ -47,7 +47,7 @@ function AdminLayout() {
           <nav className="hidden items-center gap-5 text-xs uppercase tracking-[0.15em] text-neutral-400 md:flex">
             <Link to="/admin">Overview</Link>
             <Link to="/admin/products/">Products</Link>
-            <Link to="/admin/orders">Orders</Link>
+            <Link to="/admin/orders/">Orders</Link>
           </nav>
 
           <div className="flex items-center gap-4">

@@ -338,6 +338,18 @@ export const orders = pgTable(
 
     status: orderStatusEnum("status").notNull().default("pending"),
 
+    trackingNumber: text("tracking_number"),
+    courier: text("courier"),
+    adminNotes: text("admin_notes"),
+
+    shippedAt: timestamp("shipped_at", {
+      withTimezone: true,
+    }),
+
+    deliveredAt: timestamp("delivered_at", {
+      withTimezone: true,
+    }),
+
     createdAt: timestamp("created_at", {
       withTimezone: true,
     })
