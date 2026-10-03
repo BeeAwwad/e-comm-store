@@ -313,6 +313,18 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "reversed",
 ]);
 
+export const orderEmailTypeEnum = pgEnum("order_email_type", [
+  "payment_confirmation",
+  "shipment_confirmation",
+  "delivery_confirmation",
+]);
+
+export const orderEmailStatusEnum = pgEnum("order_email_status", [
+  "pending",
+  "sent",
+  "failed",
+]);
+
 export const orders = pgTable(
   "orders",
   {
@@ -459,3 +471,40 @@ export const processedWebhooks = pgTable("processed_webhooks", {
     .defaultNow()
     .notNull(),
 });
+
+export const orderEmailEvents = pgTable(
+  "order_email_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, {
+        onDelete: "cascade",
+      }),
+
+    type: orderEmailTypeEnum("type").notNull(),
+    recipient: text("recipient").notNull(),
+    status: orderEmailStatusEnum("status").notNull().default("pending"),
+
+    providerMessageId: text("provider_message_id"),
+    errorMessage: text("error_message"),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+
+    sentAt: timestamp("sent_at", {
+      withTimezone: true,
+    }),
+  },
+  (table) => [
+    uniqueIndex("order_email_events_order_type_unique").on(
+      table.orderId,
+      table.type,
+    ),
+    index("order_email_events_order_id_idx").on(table.orderId),
+  ],
+);

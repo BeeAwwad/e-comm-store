@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { getAdminOrders } from "#/features/admin/products/server/orders";
+import { getAdminOrders } from "#/features/admin/orders/server/orders";
 import { formatNaira } from "#/lib/utils";
 
 export const Route = createFileRoute("/admin/_authenticated/orders/")({

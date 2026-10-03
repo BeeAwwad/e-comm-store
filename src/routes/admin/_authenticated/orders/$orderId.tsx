@@ -4,7 +4,7 @@ import { useState, type SubmitEvent } from "react";
 import {
   getAdminOrder,
   updateAdminOrderFulfillment,
-} from "#/features/admin/products/server/orders";
+} from "#/features/admin/orders/server/orders";
 import { formatNaira } from "#/lib/utils";
 
 export const Route = createFileRoute("/admin/_authenticated/orders/$orderId")({

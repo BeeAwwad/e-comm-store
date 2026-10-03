@@ -2,11 +2,12 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "#/db";
 import { orderItems, orders, payments, productVariants } from "#/db/schema";
 import type { PaystackVerification } from "#/lib/paystack";
+import { sendOrderEmail } from "#/features/emails/server/send-order-email";
 
 export async function completePayment(
   paymentData: PaystackVerification["data"],
 ) {
-  return db.transaction(async (tx) => {
+  const result = db.transaction(async (tx) => {
     const [payment] = await tx
       .select()
       .from(payments)
@@ -94,4 +95,15 @@ export async function completePayment(
       alreadyProcessed: false,
     };
   });
+
+  if (!(await result).alreadyProcessed) {
+    try {
+      await sendOrderEmail({
+        orderId: (await result).orderId,
+        type: "payment_confirmation",
+      });
+    } catch (error) {
+      console.error("Could not send payment confirmation email", error);
+    }
+  }
 }

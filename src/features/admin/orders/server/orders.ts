@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-
+import { sendOrderEmail } from "#/features/emails/server/send-order-email";
 import { db } from "#/db";
 import { orderItems, orders, payments } from "#/db/schema";
 import { getAdminSession } from "#/lib/auth.functions";
@@ -167,5 +167,26 @@ export const updateAdminOrderFulfillment = createServerFn({
       .where(eq(orders.id, currentOrder.id))
       .returning();
 
+    if (changingStatus && data.status === "shipped") {
+      try {
+        await sendOrderEmail({
+          orderId: updatedOrder.id,
+          type: "shipment_confirmation",
+        });
+      } catch (error) {
+        console.error("Could not send shipment confirmation email", error);
+      }
+    }
+
+    if (changingStatus && data.status === "delivered") {
+      try {
+        await sendOrderEmail({
+          orderId: updatedOrder.id,
+          type: "delivery_confirmation",
+        });
+      } catch (error) {
+        console.error("Could not send delivered confirmation email", error);
+      }
+    }
     return updatedOrder;
   });
