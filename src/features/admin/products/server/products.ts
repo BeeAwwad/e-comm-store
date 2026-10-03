@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, max } from "drizzle-orm";
 import { z } from "zod";
-
 import { db } from "#/db";
 import { productImages, products, productVariants } from "#/db/schema";
 import { getAdminSession } from "#/lib/auth.functions";
+import { createHash } from "crypto";
 
 const productStatusSchema = z.enum(["draft", "active", "archived"]);
 
@@ -259,4 +259,128 @@ export const updateAdminVariantStock = createServerFn({
     }
 
     return variant;
+  });
+
+function createCloudinarySignature(
+  values: Record<string, string | number>,
+  apiSecret: string,
+) {
+  const valueToSign = Object.entries(values)
+    .filter(([, value]) => value !== "" && value !== undefined)
+    .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("&");
+
+  return createHash("sha1").update(`${valueToSign}${apiSecret}`).digest("hex");
+}
+
+export const prepareProductImageUpload = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin();
+
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      throw new Error("Cloudinary environment variables are missing.");
+    }
+
+    const [product] = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, data.productId))
+      .limit(1);
+
+    if (!product) {
+      throw new Error("Product not found.");
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const folder = "store/products";
+
+    return {
+      cloudName,
+      apiKey,
+      timestamp,
+      folder,
+      signature: createCloudinarySignature({ folder, timestamp }, apiSecret),
+    };
+  });
+
+export const saveAdminProductImage = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      url: z.string().url(),
+      alt: z.string().trim().max(200).default(""),
+    }),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin();
+
+    const imageUrl = new URL(data.url);
+
+    if (
+      imageUrl.protocol !== "https:" ||
+      !imageUrl.hostname.endsWith("cloudinary.com")
+    ) {
+      throw new Error("Only Cloudinary image URLs can be saved.");
+    }
+
+    const [product] = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, data.productId))
+      .limit(1);
+
+    if (!product) {
+      throw new Error("Product not found.");
+    }
+
+    const [lastImage] = await db
+      .select({
+        position: max(productImages.position),
+      })
+      .from(productImages)
+      .where(eq(productImages.productId, data.productId));
+
+    const [image] = await db
+      .insert(productImages)
+      .values({
+        productId: data.productId,
+        url: data.url,
+        alt: data.alt || "Product image",
+        position: (lastImage?.position ?? -1) + 1,
+      })
+      .returning();
+
+    return image;
+  });
+
+export const deleteAdminProductImage = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      imageId: z.string().uuid(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin();
+
+    await db
+      .delete(productImages)
+      .where(
+        and(
+          eq(productImages.id, data.imageId),
+          eq(productImages.productId, data.productId),
+        ),
+      );
+
+    return { success: true };
   });

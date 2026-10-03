@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import { useState, type SubmitEvent } from "react";
-
+import { ProductImageUploader } from "#/components/admin/product-image-uploader";
 import {
   addAdminVariant,
   getAdminProduct,
@@ -204,6 +204,8 @@ function EditProductPage() {
           />
           Show as featured product
         </label>
+
+        <ProductImageUploader productId={product.id} images={product.images} />
 
         {error && (
           <p className="border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
