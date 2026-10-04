@@ -2,10 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, asc, desc, eq, ilike, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../../db";
-import { productImages, productVariants, products } from "../../../db/schema";
+import {
+  productImages,
+  productVariants,
+  products,
+  categories,
+  productCategories,
+} from "../../../db/schema";
+import { exists } from "drizzle-orm";
 
 const productFiltersSchema = z.object({
   search: z.string().trim().max(100).optional().default(""),
+  category: z.string().trim().max(100).optional().default(""),
   sort: z
     .enum(["featured", "price-asc", "price-desc"])
     .optional()
@@ -43,8 +51,23 @@ export const getProducts = createServerFn({ method: "GET" })
       )
       .where(
         and(
-          eq(products.status, "active"),
-          data.search ? ilike(products.name, `%${data.search}%`) : undefined,
+          data.category
+            ? exists(
+                db
+                  .select({ id: productCategories.productId })
+                  .from(productCategories)
+                  .innerJoin(
+                    categories,
+                    eq(categories.id, productCategories.categoryId),
+                  )
+                  .where(
+                    and(
+                      eq(productCategories.productId, products.id),
+                      eq(categories.slug, data.category),
+                    ),
+                  ),
+              )
+            : undefined,
         ),
       )
       .groupBy(products.id)

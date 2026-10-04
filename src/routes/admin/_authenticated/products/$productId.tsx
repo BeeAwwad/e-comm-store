@@ -8,6 +8,7 @@ import {
   updateAdminVariantStock,
 } from "#/features/admin/products/server/products";
 import { formatNaira } from "#/lib/utils";
+import { ProductCategoryEditor } from "#/components/admin/product-category-editor";
 
 export const Route = createFileRoute(
   "/admin/_authenticated/products/$productId",
@@ -206,6 +207,7 @@ function EditProductPage() {
         </label>
 
         <ProductImageUploader productId={product.id} images={product.images} />
+        <ProductCategoryEditor productId={product.id} />
 
         {error && (
           <p className="border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">

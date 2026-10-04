@@ -21,10 +21,12 @@ import { Route as OrderPublicTokenRouteImport } from './routes/order/$publicToke
 import { Route as ShopIndexRouteImport } from './routes/shop/index'
 import { Route as ShopProductSlugRouteImport } from './routes/shop/$productSlug'
 import { Route as AdminAuthenticatedIndexRouteImport } from './routes/admin/_authenticated/index'
+import { Route as AdminAuthenticatedCategoriesRouteImport } from './routes/admin/_authenticated/categories'
 import { Route as AdminAuthenticatedOrdersRouteImport } from './routes/admin/_authenticated/orders'
 import { Route as AdminAuthenticatedProductsRouteImport } from './routes/admin/_authenticated/products'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiWebhooksPaystackRouteImport } from './routes/api/webhooks/paystack'
+import { Route as AdminAuthenticatedCategoriesIndexRouteImport } from './routes/admin/_authenticated/categories/index'
 import { Route as AdminAuthenticatedOrdersIndexRouteImport } from './routes/admin/_authenticated/orders/index'
 import { Route as AdminAuthenticatedOrdersOrderIdRouteImport } from './routes/admin/_authenticated/orders/$orderId'
 import { Route as AdminAuthenticatedProductsIndexRouteImport } from './routes/admin/_authenticated/products/index'
@@ -90,6 +92,12 @@ const AdminAuthenticatedIndexRoute = AdminAuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminAuthenticatedRoute,
 } as any)
+const AdminAuthenticatedCategoriesRoute =
+  AdminAuthenticatedCategoriesRouteImport.update({
+    id: '/categories',
+    path: '/categories',
+    getParentRoute: () => AdminAuthenticatedRoute,
+  } as any)
 const AdminAuthenticatedOrdersRoute =
   AdminAuthenticatedOrdersRouteImport.update({
     id: '/orders',
@@ -112,6 +120,12 @@ const ApiWebhooksPaystackRoute = ApiWebhooksPaystackRouteImport.update({
   path: '/api/webhooks/paystack',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAuthenticatedCategoriesIndexRoute =
+  AdminAuthenticatedCategoriesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AdminAuthenticatedCategoriesRoute,
+  } as any)
 const AdminAuthenticatedOrdersIndexRoute =
   AdminAuthenticatedOrdersIndexRouteImport.update({
     id: '/',
@@ -154,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/admin/categories': typeof AdminAuthenticatedCategoriesRouteWithChildren
   '/admin/orders': typeof AdminAuthenticatedOrdersRouteWithChildren
   '/admin/products': typeof AdminAuthenticatedProductsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -162,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/admin/orders/$orderId': typeof AdminAuthenticatedOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthenticatedProductsNewRoute
+  '/admin/categories/': typeof AdminAuthenticatedCategoriesIndexRoute
   '/admin/orders/': typeof AdminAuthenticatedOrdersIndexRoute
   '/admin/products/': typeof AdminAuthenticatedProductsIndexRoute
 }
@@ -180,6 +196,7 @@ export interface FileRoutesByTo {
   '/admin/orders/$orderId': typeof AdminAuthenticatedOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthenticatedProductsNewRoute
+  '/admin/categories': typeof AdminAuthenticatedCategoriesIndexRoute
   '/admin/orders': typeof AdminAuthenticatedOrdersIndexRoute
   '/admin/products': typeof AdminAuthenticatedProductsIndexRoute
 }
@@ -196,6 +213,7 @@ export interface FileRoutesById {
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/admin/_authenticated/categories': typeof AdminAuthenticatedCategoriesRouteWithChildren
   '/admin/_authenticated/orders': typeof AdminAuthenticatedOrdersRouteWithChildren
   '/admin/_authenticated/products': typeof AdminAuthenticatedProductsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -204,6 +222,7 @@ export interface FileRoutesById {
   '/admin/_authenticated/orders/$orderId': typeof AdminAuthenticatedOrdersOrderIdRoute
   '/admin/_authenticated/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
   '/admin/_authenticated/products/new': typeof AdminAuthenticatedProductsNewRoute
+  '/admin/_authenticated/categories/': typeof AdminAuthenticatedCategoriesIndexRoute
   '/admin/_authenticated/orders/': typeof AdminAuthenticatedOrdersIndexRoute
   '/admin/_authenticated/products/': typeof AdminAuthenticatedProductsIndexRoute
 }
@@ -220,6 +239,7 @@ export interface FileRouteTypes {
     | '/shop/$productSlug'
     | '/checkout/'
     | '/shop/'
+    | '/admin/categories'
     | '/admin/orders'
     | '/admin/products'
     | '/api/auth/$'
@@ -228,6 +248,7 @@ export interface FileRouteTypes {
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
+    | '/admin/categories/'
     | '/admin/orders/'
     | '/admin/products/'
   fileRoutesByTo: FileRoutesByTo
@@ -246,6 +267,7 @@ export interface FileRouteTypes {
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
+    | '/admin/categories'
     | '/admin/orders'
     | '/admin/products'
   id:
@@ -261,6 +283,7 @@ export interface FileRouteTypes {
     | '/shop/$productSlug'
     | '/checkout/'
     | '/shop/'
+    | '/admin/_authenticated/categories'
     | '/admin/_authenticated/orders'
     | '/admin/_authenticated/products'
     | '/api/auth/$'
@@ -269,6 +292,7 @@ export interface FileRouteTypes {
     | '/admin/_authenticated/orders/$orderId'
     | '/admin/_authenticated/products/$productId'
     | '/admin/_authenticated/products/new'
+    | '/admin/_authenticated/categories/'
     | '/admin/_authenticated/orders/'
     | '/admin/_authenticated/products/'
   fileRoutesById: FileRoutesById
@@ -371,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuthenticatedIndexRouteImport
       parentRoute: typeof AdminAuthenticatedRoute
     }
+    '/admin/_authenticated/categories': {
+      id: '/admin/_authenticated/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminAuthenticatedCategoriesRouteImport
+      parentRoute: typeof AdminAuthenticatedRoute
+    }
     '/admin/_authenticated/orders': {
       id: '/admin/_authenticated/orders'
       path: '/orders'
@@ -398,6 +429,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/webhooks/paystack'
       preLoaderRoute: typeof ApiWebhooksPaystackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/_authenticated/categories/': {
+      id: '/admin/_authenticated/categories/'
+      path: '/'
+      fullPath: '/admin/categories/'
+      preLoaderRoute: typeof AdminAuthenticatedCategoriesIndexRouteImport
+      parentRoute: typeof AdminAuthenticatedCategoriesRoute
     }
     '/admin/_authenticated/orders/': {
       id: '/admin/_authenticated/orders/'
@@ -437,6 +475,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminAuthenticatedCategoriesRouteChildren {
+  AdminAuthenticatedCategoriesIndexRoute: typeof AdminAuthenticatedCategoriesIndexRoute
+}
+
+const AdminAuthenticatedCategoriesRouteChildren: AdminAuthenticatedCategoriesRouteChildren =
+  {
+    AdminAuthenticatedCategoriesIndexRoute:
+      AdminAuthenticatedCategoriesIndexRoute,
+  }
+
+const AdminAuthenticatedCategoriesRouteWithChildren =
+  AdminAuthenticatedCategoriesRoute._addFileChildren(
+    AdminAuthenticatedCategoriesRouteChildren,
+  )
+
 interface AdminAuthenticatedOrdersRouteChildren {
   AdminAuthenticatedOrdersOrderIdRoute: typeof AdminAuthenticatedOrdersOrderIdRoute
   AdminAuthenticatedOrdersIndexRoute: typeof AdminAuthenticatedOrdersIndexRoute
@@ -473,12 +526,15 @@ const AdminAuthenticatedProductsRouteWithChildren =
   )
 
 interface AdminAuthenticatedRouteChildren {
+  AdminAuthenticatedCategoriesRoute: typeof AdminAuthenticatedCategoriesRouteWithChildren
   AdminAuthenticatedOrdersRoute: typeof AdminAuthenticatedOrdersRouteWithChildren
   AdminAuthenticatedProductsRoute: typeof AdminAuthenticatedProductsRouteWithChildren
   AdminAuthenticatedIndexRoute: typeof AdminAuthenticatedIndexRoute
 }
 
 const AdminAuthenticatedRouteChildren: AdminAuthenticatedRouteChildren = {
+  AdminAuthenticatedCategoriesRoute:
+    AdminAuthenticatedCategoriesRouteWithChildren,
   AdminAuthenticatedOrdersRoute: AdminAuthenticatedOrdersRouteWithChildren,
   AdminAuthenticatedProductsRoute: AdminAuthenticatedProductsRouteWithChildren,
   AdminAuthenticatedIndexRoute: AdminAuthenticatedIndexRoute,

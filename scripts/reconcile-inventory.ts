@@ -1,9 +1,5 @@
 import "dotenv/config";
 
-/*
- * This must be dynamically imported after dotenv/config runs.
- * The database module reads DATABASE_URL during import.
- */
 const { reconcileExpiredReservations } =
   await import("#/features/inventory/server/reconcile-reservations");
 
