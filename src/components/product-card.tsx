@@ -20,7 +20,7 @@ export function ProductCard({ product }: ProductCardProps) {
       params={{ productSlug: product.slug }}
       className="group block"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-900">
+      <div className="relative aspect-4/5 overflow-hidden bg-neutral-900">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}

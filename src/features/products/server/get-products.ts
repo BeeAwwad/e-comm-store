@@ -2,11 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, asc, desc, eq, ilike, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../../db";
-import {
-  productImages,
-  productVariants,
-  products,
-} from "../../../db/schema";
+import { productImages, productVariants, products } from "../../../db/schema";
 
 const productFiltersSchema = z.object({
   search: z.string().trim().max(100).optional().default(""),
@@ -37,10 +33,7 @@ export const getProducts = createServerFn({ method: "GET" })
         totalStock: sql<number>`coalesce(sum(${productVariants.stock}), 0)`,
       })
       .from(products)
-      .leftJoin(
-        productImages,
-        eq(productImages.productId, products.id),
-      )
+      .leftJoin(productImages, eq(productImages.productId, products.id))
       .leftJoin(
         productVariants,
         and(
@@ -51,9 +44,7 @@ export const getProducts = createServerFn({ method: "GET" })
       .where(
         and(
           eq(products.status, "active"),
-          data.search
-            ? ilike(products.name, `%${data.search}%`)
-            : undefined,
+          data.search ? ilike(products.name, `%${data.search}%`) : undefined,
         ),
       )
       .groupBy(products.id)

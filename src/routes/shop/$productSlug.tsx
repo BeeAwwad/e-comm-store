@@ -30,7 +30,7 @@ function ProductPage() {
           {product.images.map((image) => (
             <div
               key={image.id}
-              className="aspect-[4/5] overflow-hidden bg-neutral-900"
+              className="aspect-4/5 overflow-hidden bg-neutral-900"
             >
               <img
                 src={image.url}

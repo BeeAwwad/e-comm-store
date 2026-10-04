@@ -7,7 +7,7 @@ import { sendOrderEmail } from "#/features/emails/server/send-order-email";
 export async function completePayment(
   paymentData: PaystackVerification["data"],
 ) {
-  const result = db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     const [payment] = await tx
       .select()
       .from(payments)
@@ -42,26 +42,45 @@ export async function completePayment(
       throw new Error("Payment verification did not match order");
     }
 
+    const [order] = await tx
+      .select()
+      .from(orders)
+      .where(eq(orders.id, payment.orderId))
+      .for("update");
+
+    if (!order) {
+      throw new Error("Order does not exist");
+    }
+
     const items = await tx
       .select()
       .from(orderItems)
       .where(eq(orderItems.orderId, payment.orderId));
 
     for (const item of items) {
+      const reservationCondition = order.inventoryReserved
+        ? and(
+            eq(productVariants.id, item.variantId),
+            sql`${productVariants.stock} >= ${item.quantity}`,
+            sql`${productVariants.reservedStock} >= ${item.quantity}`,
+          )
+        : and(
+            eq(productVariants.id, item.variantId),
+            sql`${productVariants.stock} >= ${item.quantity}`,
+          );
+
       const [updatedVariant] = await tx
         .update(productVariants)
         .set({
           stock: sql`${productVariants.stock} - ${item.quantity}`,
+          ...(order.inventoryReserved
+            ? {
+                reservedStock: sql`${productVariants.reservedStock} - ${item.quantity}`,
+              }
+            : {}),
         })
-        .where(
-          and(
-            eq(productVariants.id, item.variantId),
-            sql`${productVariants.stock} >= ${item.quantity}`,
-          ),
-        )
-        .returning({
-          id: productVariants.id,
-        });
+        .where(reservationCondition)
+        .returning({ id: productVariants.id });
 
       if (!updatedVariant) {
         throw new Error(`Insufficient inventory for SKU ${item.sku}`);
@@ -83,6 +102,8 @@ export async function completePayment(
       .update(orders)
       .set({
         status: "paid",
+        inventoryReserved: false,
+        reservationExpiresAt: null,
         paidAt: paymentData.paid_at
           ? new Date(paymentData.paid_at)
           : new Date(),
@@ -96,14 +117,16 @@ export async function completePayment(
     };
   });
 
-  if (!(await result).alreadyProcessed) {
+  if (!result.alreadyProcessed) {
     try {
       await sendOrderEmail({
-        orderId: (await result).orderId,
+        orderId: result.orderId,
         type: "payment_confirmation",
       });
     } catch (error) {
       console.error("Could not send payment confirmation email", error);
     }
   }
+
+  return result;
 }

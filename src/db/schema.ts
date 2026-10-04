@@ -282,6 +282,7 @@ export const productVariants = pgTable(
     size: text("size").notNull(),
     color: text("color").notNull().default("Default"),
     stock: integer("stock").notNull().default(0),
+    reservedStock: integer("reserved_stock").notNull().default(0),
     priceKobo: integer("price_kobo"),
     active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", {
@@ -349,6 +350,12 @@ export const orders = pgTable(
     currency: text("currency").notNull().default("NGN"),
 
     status: orderStatusEnum("status").notNull().default("pending"),
+
+    inventoryReserved: boolean("inventory_reserved").notNull().default(false),
+
+    reservationExpiresAt: timestamp("reservation_expires_at", {
+      withTimezone: true,
+    }),
 
     trackingNumber: text("tracking_number"),
     courier: text("courier"),

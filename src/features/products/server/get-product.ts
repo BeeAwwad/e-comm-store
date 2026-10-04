@@ -39,6 +39,9 @@ export const getProduct = createServerFn({ method: "GET" })
     return {
       ...product,
       images,
-      variants,
+      variants: variants.map((variant) => ({
+        ...variant,
+        availableStock: Math.max(variant.stock - variant.reservedStock, 0),
+      })),
     };
   });

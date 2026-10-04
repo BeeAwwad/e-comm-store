@@ -10,6 +10,7 @@ type Variant = {
   color: string;
   stock: number;
   priceKobo: number | null;
+  availableStock: number;
 };
 
 type Props = {
@@ -27,7 +28,7 @@ type Props = {
 
 export function AddToCart({ product }: Props) {
   const availableVariants = useMemo(
-    () => product.variants.filter((variant) => variant.stock > 0),
+    () => product.variants.filter((variant) => variant.availableStock > 0),
     [product.variants],
   );
 
@@ -52,7 +53,7 @@ export function AddToCart({ product }: Props) {
       color: selectedVariant.color,
       priceKobo: selectedVariant.priceKobo ?? product.priceKobo,
       quantity: 1,
-      stock: selectedVariant.stock,
+      stock: selectedVariant.availableStock,
     });
 
     window.location.assign("/cart");
@@ -67,7 +68,7 @@ export function AddToCart({ product }: Props) {
 
         <div className="flex flex-wrap gap-2">
           {product.variants.map((variant) => {
-            const unavailable = variant.stock <= 0;
+            const unavailable = variant.availableStock <= 0;
 
             return (
               <button

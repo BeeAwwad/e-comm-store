@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "#/db";
 import {
@@ -11,6 +11,7 @@ import {
 } from "#/db/schema";
 import { createOrderNumber, createPaymentReference } from "#/lib/order-number";
 import { initializePaystackTransaction } from "#/lib/paystack";
+import { releaseInventoryReservation } from "#/features/inventory/server/reservations";
 
 const checkoutSchema = z.object({
   email: z.email(),
@@ -38,7 +39,24 @@ export const createCheckout = createServerFn({
 })
   .validator(checkoutSchema)
   .handler(async ({ data }) => {
-    const requestedIds = [...new Set(data.items.map((item) => item.variantId))];
+    /*
+     * A customer could theoretically have the same variant twice in their
+     * browser cart. Merge those rows first, so stock is checked/reserved once.
+     */
+    const quantityByVariantId = new Map<string, number>();
+
+    for (const item of data.items) {
+      const nextQuantity =
+        (quantityByVariantId.get(item.variantId) ?? 0) + item.quantity;
+
+      if (nextQuantity > 10) {
+        throw new Error("You can only purchase up to 10 of one item.");
+      }
+
+      quantityByVariantId.set(item.variantId, nextQuantity);
+    }
+
+    const requestedIds = [...quantityByVariantId.keys()];
 
     const variants = await db
       .select({
@@ -47,10 +65,12 @@ export const createCheckout = createServerFn({
         productName: products.name,
         productSlug: products.slug,
         productStatus: products.status,
+        variantActive: productVariants.active,
         sku: productVariants.sku,
         size: productVariants.size,
         color: productVariants.color,
         stock: productVariants.stock,
+        reservedStock: productVariants.reservedStock,
         productPriceKobo: products.priceKobo,
         variantPriceKobo: productVariants.priceKobo,
       })
@@ -59,34 +79,50 @@ export const createCheckout = createServerFn({
       .where(inArray(productVariants.id, requestedIds));
 
     if (variants.length !== requestedIds.length) {
-      throw new Error("One or more cart items no longer exist");
+      throw new Error("One or more cart items no longer exist.");
     }
 
-    const normalizedItems = data.items.map((requested) => {
-      const variant = variants.find(
-        (entry) => entry.variantId === requested.variantId,
-      );
+    const normalizedItems = requestedIds
+      .map((variantId) => {
+        const variant = variants.find((entry) => entry.variantId === variantId);
 
-      if (!variant || variant.productStatus !== "active") {
-        throw new Error("One or more products are unavailable");
-      }
+        const quantity = quantityByVariantId.get(variantId);
 
-      if (variant.stock < requested.quantity) {
-        throw new Error(
-          `${variant.productName} in size ${variant.size} only has ${variant.stock} remaining`,
-        );
-      }
+        if (!variant || !quantity) {
+          throw new Error("One or more cart items are unavailable.");
+        }
 
-      const unitPriceKobo =
-        variant.variantPriceKobo ?? variant.productPriceKobo;
+        if (variant.productStatus !== "active" || !variant.variantActive) {
+          throw new Error(`${variant.productName} is no longer available.`);
+        }
 
-      return {
-        ...variant,
-        quantity: requested.quantity,
-        unitPriceKobo,
-        lineTotalKobo: unitPriceKobo * requested.quantity,
-      };
-    });
+        const availableStock = variant.stock - variant.reservedStock;
+
+        if (availableStock < quantity) {
+          throw new Error(
+            `${variant.productName} in size ${variant.size} only has ${Math.max(
+              availableStock,
+              0,
+            )} remaining.`,
+          );
+        }
+
+        const unitPriceKobo =
+          variant.variantPriceKobo ?? variant.productPriceKobo;
+
+        return {
+          ...variant,
+          quantity,
+          unitPriceKobo,
+          lineTotalKobo: unitPriceKobo * quantity,
+        };
+      })
+      /*
+       * All checkout requests reserve variants in the same order.
+       * This reduces the chance of database deadlocks when two people
+       * are checking out different combinations of products simultaneously.
+       */
+      .sort((first, second) => first.variantId.localeCompare(second.variantId));
 
     const subtotalKobo = normalizedItems.reduce(
       (total, item) => total + item.lineTotalKobo,
@@ -99,7 +135,44 @@ export const createCheckout = createServerFn({
     const orderNumber = createOrderNumber();
     const paymentReference = createPaymentReference();
 
+    /*
+     * Twenty minutes is enough time for a normal Paystack checkout.
+     * A later reconciliation job will verify expired pending payments
+     * with Paystack before releasing their reservation.
+     */
+    const reservationExpiresAt = new Date(Date.now() + 20 * 60 * 1000);
+
     const created = await db.transaction(async (tx) => {
+      /*
+       * This is the important atomic reservation.
+       *
+       * Postgres only increments reserved_stock if stock - reserved_stock
+       * is still enough at the exact moment this query runs.
+       */
+      for (const item of normalizedItems) {
+        const [reservedVariant] = await tx
+          .update(productVariants)
+          .set({
+            reservedStock: sql`${productVariants.reservedStock} + ${item.quantity}`,
+          })
+          .where(
+            and(
+              eq(productVariants.id, item.variantId),
+              eq(productVariants.active, true),
+              sql`${productVariants.stock} - ${productVariants.reservedStock} >= ${item.quantity}`,
+            ),
+          )
+          .returning({
+            id: productVariants.id,
+          });
+
+        if (!reservedVariant) {
+          throw new Error(
+            `${item.productName} in size ${item.size} just sold out.`,
+          );
+        }
+      }
+
       const [order] = await tx
         .insert(orders)
         .values({
@@ -117,6 +190,8 @@ export const createCheckout = createServerFn({
           shippingKobo,
           totalKobo,
           currency: "NGN",
+          inventoryReserved: true,
+          reservationExpiresAt,
         })
         .returning();
 
@@ -162,13 +237,18 @@ export const createCheckout = createServerFn({
         orderNumber: created.orderNumber,
       };
     } catch (error) {
-      await db
-        .update(payments)
-        .set({
-          status: "failed",
-          updatedAt: new Date(),
-        })
-        .where(eq(payments.reference, paymentReference));
+      /*
+       * Paystack was not initialized, so the customer cannot pay for this
+       * order. Return its temporary stock reservation immediately.
+       */
+      try {
+        await releaseInventoryReservation(paymentReference, "failed");
+      } catch (releaseError) {
+        console.error(
+          "Could not release inventory after Paystack initialization failed",
+          releaseError,
+        );
+      }
 
       throw error;
     }
