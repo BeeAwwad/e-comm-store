@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import {
   createAdminCategory,
   deleteAdminCategory,
@@ -24,10 +24,10 @@ function CategoriesPage() {
     await router.invalidate({ sync: true });
   }
 
-  async function createCategory(event: FormEvent<HTMLFormElement>) {
+  async function createCategory(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
 
     setSaving(true);
     setError("");
@@ -52,7 +52,7 @@ function CategoriesPage() {
   }
 
   async function updateCategory(
-    event: FormEvent<HTMLFormElement>,
+    event: SubmitEvent<HTMLFormElement>,
     categoryId: string,
   ) {
     event.preventDefault();

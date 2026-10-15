@@ -49,6 +49,7 @@ function AdminLayout() {
             <Link to="/admin/products/">Products</Link>
             <Link to="/admin/orders/">Orders</Link>
             <Link to="/admin/categories/">Categories</Link>
+            <Link to="/admin/collections/">Collections</Link>
           </nav>
 
           <div className="flex items-center gap-4">

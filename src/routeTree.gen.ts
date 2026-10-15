@@ -13,20 +13,25 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as AdminAuthenticatedRouteImport } from './routes/admin/_authenticated'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout/index'
 import { Route as CheckoutCallbackRouteImport } from './routes/checkout/callback'
+import { Route as CollectionsIndexRouteImport } from './routes/collections/index'
+import { Route as CollectionsCollectionSlugRouteImport } from './routes/collections/$collectionSlug'
 import { Route as OrderPublicTokenRouteImport } from './routes/order/$publicToken'
 import { Route as ShopIndexRouteImport } from './routes/shop/index'
 import { Route as ShopProductSlugRouteImport } from './routes/shop/$productSlug'
 import { Route as AdminAuthenticatedIndexRouteImport } from './routes/admin/_authenticated/index'
 import { Route as AdminAuthenticatedCategoriesRouteImport } from './routes/admin/_authenticated/categories'
+import { Route as AdminAuthenticatedCollectionsRouteImport } from './routes/admin/_authenticated/collections'
 import { Route as AdminAuthenticatedOrdersRouteImport } from './routes/admin/_authenticated/orders'
 import { Route as AdminAuthenticatedProductsRouteImport } from './routes/admin/_authenticated/products'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiWebhooksPaystackRouteImport } from './routes/api/webhooks/paystack'
 import { Route as AdminAuthenticatedCategoriesIndexRouteImport } from './routes/admin/_authenticated/categories/index'
+import { Route as AdminAuthenticatedCollectionsIndexRouteImport } from './routes/admin/_authenticated/collections/index'
 import { Route as AdminAuthenticatedOrdersIndexRouteImport } from './routes/admin/_authenticated/orders/index'
 import { Route as AdminAuthenticatedOrdersOrderIdRouteImport } from './routes/admin/_authenticated/orders/$orderId'
 import { Route as AdminAuthenticatedProductsIndexRouteImport } from './routes/admin/_authenticated/products/index'
@@ -53,6 +58,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CollectionsRoute = CollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAuthenticatedRoute = AdminAuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => AdminRoute,
@@ -72,6 +82,17 @@ const CheckoutCallbackRoute = CheckoutCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => CheckoutRoute,
 } as any)
+const CollectionsIndexRoute = CollectionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CollectionsRoute,
+} as any)
+const CollectionsCollectionSlugRoute =
+  CollectionsCollectionSlugRouteImport.update({
+    id: '/$collectionSlug',
+    path: '/$collectionSlug',
+    getParentRoute: () => CollectionsRoute,
+  } as any)
 const OrderPublicTokenRoute = OrderPublicTokenRouteImport.update({
   id: '/order/$publicToken',
   path: '/order/$publicToken',
@@ -96,6 +117,12 @@ const AdminAuthenticatedCategoriesRoute =
   AdminAuthenticatedCategoriesRouteImport.update({
     id: '/categories',
     path: '/categories',
+    getParentRoute: () => AdminAuthenticatedRoute,
+  } as any)
+const AdminAuthenticatedCollectionsRoute =
+  AdminAuthenticatedCollectionsRouteImport.update({
+    id: '/collections',
+    path: '/collections',
     getParentRoute: () => AdminAuthenticatedRoute,
   } as any)
 const AdminAuthenticatedOrdersRoute =
@@ -125,6 +152,12 @@ const AdminAuthenticatedCategoriesIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AdminAuthenticatedCategoriesRoute,
+  } as any)
+const AdminAuthenticatedCollectionsIndexRoute =
+  AdminAuthenticatedCollectionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AdminAuthenticatedCollectionsRoute,
   } as any)
 const AdminAuthenticatedOrdersIndexRoute =
   AdminAuthenticatedOrdersIndexRouteImport.update({
@@ -162,13 +195,17 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRouteWithChildren
+  '/collections': typeof CollectionsRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
+  '/collections/$collectionSlug': typeof CollectionsCollectionSlugRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
+  '/collections/': typeof CollectionsIndexRoute
   '/shop/': typeof ShopIndexRoute
   '/admin/categories': typeof AdminAuthenticatedCategoriesRouteWithChildren
+  '/admin/collections': typeof AdminAuthenticatedCollectionsRouteWithChildren
   '/admin/orders': typeof AdminAuthenticatedOrdersRouteWithChildren
   '/admin/products': typeof AdminAuthenticatedProductsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -178,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/admin/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthenticatedProductsNewRoute
   '/admin/categories/': typeof AdminAuthenticatedCategoriesIndexRoute
+  '/admin/collections/': typeof AdminAuthenticatedCollectionsIndexRoute
   '/admin/orders/': typeof AdminAuthenticatedOrdersIndexRoute
   '/admin/products/': typeof AdminAuthenticatedProductsIndexRoute
 }
@@ -187,9 +225,11 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/admin/login': typeof AdminLoginRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
+  '/collections/$collectionSlug': typeof CollectionsCollectionSlugRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout': typeof CheckoutIndexRoute
+  '/collections': typeof CollectionsIndexRoute
   '/shop': typeof ShopIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/webhooks/paystack': typeof ApiWebhooksPaystackRoute
@@ -197,6 +237,7 @@ export interface FileRoutesByTo {
   '/admin/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
   '/admin/products/new': typeof AdminAuthenticatedProductsNewRoute
   '/admin/categories': typeof AdminAuthenticatedCategoriesIndexRoute
+  '/admin/collections': typeof AdminAuthenticatedCollectionsIndexRoute
   '/admin/orders': typeof AdminAuthenticatedOrdersIndexRoute
   '/admin/products': typeof AdminAuthenticatedProductsIndexRoute
 }
@@ -206,14 +247,18 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRouteWithChildren
+  '/collections': typeof CollectionsRouteWithChildren
   '/admin/_authenticated': typeof AdminAuthenticatedRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
+  '/collections/$collectionSlug': typeof CollectionsCollectionSlugRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
   '/shop/$productSlug': typeof ShopProductSlugRoute
   '/checkout/': typeof CheckoutIndexRoute
+  '/collections/': typeof CollectionsIndexRoute
   '/shop/': typeof ShopIndexRoute
   '/admin/_authenticated/categories': typeof AdminAuthenticatedCategoriesRouteWithChildren
+  '/admin/_authenticated/collections': typeof AdminAuthenticatedCollectionsRouteWithChildren
   '/admin/_authenticated/orders': typeof AdminAuthenticatedOrdersRouteWithChildren
   '/admin/_authenticated/products': typeof AdminAuthenticatedProductsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -223,6 +268,7 @@ export interface FileRoutesById {
   '/admin/_authenticated/products/$productId': typeof AdminAuthenticatedProductsProductIdRoute
   '/admin/_authenticated/products/new': typeof AdminAuthenticatedProductsNewRoute
   '/admin/_authenticated/categories/': typeof AdminAuthenticatedCategoriesIndexRoute
+  '/admin/_authenticated/collections/': typeof AdminAuthenticatedCollectionsIndexRoute
   '/admin/_authenticated/orders/': typeof AdminAuthenticatedOrdersIndexRoute
   '/admin/_authenticated/products/': typeof AdminAuthenticatedProductsIndexRoute
 }
@@ -233,13 +279,17 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/checkout'
+    | '/collections'
     | '/admin/login'
     | '/checkout/callback'
+    | '/collections/$collectionSlug'
     | '/order/$publicToken'
     | '/shop/$productSlug'
     | '/checkout/'
+    | '/collections/'
     | '/shop/'
     | '/admin/categories'
+    | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
     | '/api/auth/$'
@@ -249,6 +299,7 @@ export interface FileRouteTypes {
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/admin/categories/'
+    | '/admin/collections/'
     | '/admin/orders/'
     | '/admin/products/'
   fileRoutesByTo: FileRoutesByTo
@@ -258,9 +309,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/admin/login'
     | '/checkout/callback'
+    | '/collections/$collectionSlug'
     | '/order/$publicToken'
     | '/shop/$productSlug'
     | '/checkout'
+    | '/collections'
     | '/shop'
     | '/api/auth/$'
     | '/api/webhooks/paystack'
@@ -268,6 +321,7 @@ export interface FileRouteTypes {
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/admin/categories'
+    | '/admin/collections'
     | '/admin/orders'
     | '/admin/products'
   id:
@@ -276,14 +330,18 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/checkout'
+    | '/collections'
     | '/admin/_authenticated'
     | '/admin/login'
     | '/checkout/callback'
+    | '/collections/$collectionSlug'
     | '/order/$publicToken'
     | '/shop/$productSlug'
     | '/checkout/'
+    | '/collections/'
     | '/shop/'
     | '/admin/_authenticated/categories'
+    | '/admin/_authenticated/collections'
     | '/admin/_authenticated/orders'
     | '/admin/_authenticated/products'
     | '/api/auth/$'
@@ -293,6 +351,7 @@ export interface FileRouteTypes {
     | '/admin/_authenticated/products/$productId'
     | '/admin/_authenticated/products/new'
     | '/admin/_authenticated/categories/'
+    | '/admin/_authenticated/collections/'
     | '/admin/_authenticated/orders/'
     | '/admin/_authenticated/products/'
   fileRoutesById: FileRoutesById
@@ -302,6 +361,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRouteWithChildren
+  CollectionsRoute: typeof CollectionsRouteWithChildren
   OrderPublicTokenRoute: typeof OrderPublicTokenRoute
   ShopProductSlugRoute: typeof ShopProductSlugRoute
   ShopIndexRoute: typeof ShopIndexRoute
@@ -339,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/collections': {
+      id: '/collections'
+      path: '/collections'
+      fullPath: '/collections'
+      preLoaderRoute: typeof CollectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/_authenticated': {
       id: '/admin/_authenticated'
       path: ''
@@ -366,6 +433,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout/callback'
       preLoaderRoute: typeof CheckoutCallbackRouteImport
       parentRoute: typeof CheckoutRoute
+    }
+    '/collections/': {
+      id: '/collections/'
+      path: '/'
+      fullPath: '/collections/'
+      preLoaderRoute: typeof CollectionsIndexRouteImport
+      parentRoute: typeof CollectionsRoute
+    }
+    '/collections/$collectionSlug': {
+      id: '/collections/$collectionSlug'
+      path: '/$collectionSlug'
+      fullPath: '/collections/$collectionSlug'
+      preLoaderRoute: typeof CollectionsCollectionSlugRouteImport
+      parentRoute: typeof CollectionsRoute
     }
     '/order/$publicToken': {
       id: '/order/$publicToken'
@@ -402,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuthenticatedCategoriesRouteImport
       parentRoute: typeof AdminAuthenticatedRoute
     }
+    '/admin/_authenticated/collections': {
+      id: '/admin/_authenticated/collections'
+      path: '/collections'
+      fullPath: '/admin/collections'
+      preLoaderRoute: typeof AdminAuthenticatedCollectionsRouteImport
+      parentRoute: typeof AdminAuthenticatedRoute
+    }
     '/admin/_authenticated/orders': {
       id: '/admin/_authenticated/orders'
       path: '/orders'
@@ -436,6 +524,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/categories/'
       preLoaderRoute: typeof AdminAuthenticatedCategoriesIndexRouteImport
       parentRoute: typeof AdminAuthenticatedCategoriesRoute
+    }
+    '/admin/_authenticated/collections/': {
+      id: '/admin/_authenticated/collections/'
+      path: '/'
+      fullPath: '/admin/collections/'
+      preLoaderRoute: typeof AdminAuthenticatedCollectionsIndexRouteImport
+      parentRoute: typeof AdminAuthenticatedCollectionsRoute
     }
     '/admin/_authenticated/orders/': {
       id: '/admin/_authenticated/orders/'
@@ -490,6 +585,21 @@ const AdminAuthenticatedCategoriesRouteWithChildren =
     AdminAuthenticatedCategoriesRouteChildren,
   )
 
+interface AdminAuthenticatedCollectionsRouteChildren {
+  AdminAuthenticatedCollectionsIndexRoute: typeof AdminAuthenticatedCollectionsIndexRoute
+}
+
+const AdminAuthenticatedCollectionsRouteChildren: AdminAuthenticatedCollectionsRouteChildren =
+  {
+    AdminAuthenticatedCollectionsIndexRoute:
+      AdminAuthenticatedCollectionsIndexRoute,
+  }
+
+const AdminAuthenticatedCollectionsRouteWithChildren =
+  AdminAuthenticatedCollectionsRoute._addFileChildren(
+    AdminAuthenticatedCollectionsRouteChildren,
+  )
+
 interface AdminAuthenticatedOrdersRouteChildren {
   AdminAuthenticatedOrdersOrderIdRoute: typeof AdminAuthenticatedOrdersOrderIdRoute
   AdminAuthenticatedOrdersIndexRoute: typeof AdminAuthenticatedOrdersIndexRoute
@@ -527,6 +637,7 @@ const AdminAuthenticatedProductsRouteWithChildren =
 
 interface AdminAuthenticatedRouteChildren {
   AdminAuthenticatedCategoriesRoute: typeof AdminAuthenticatedCategoriesRouteWithChildren
+  AdminAuthenticatedCollectionsRoute: typeof AdminAuthenticatedCollectionsRouteWithChildren
   AdminAuthenticatedOrdersRoute: typeof AdminAuthenticatedOrdersRouteWithChildren
   AdminAuthenticatedProductsRoute: typeof AdminAuthenticatedProductsRouteWithChildren
   AdminAuthenticatedIndexRoute: typeof AdminAuthenticatedIndexRoute
@@ -535,6 +646,8 @@ interface AdminAuthenticatedRouteChildren {
 const AdminAuthenticatedRouteChildren: AdminAuthenticatedRouteChildren = {
   AdminAuthenticatedCategoriesRoute:
     AdminAuthenticatedCategoriesRouteWithChildren,
+  AdminAuthenticatedCollectionsRoute:
+    AdminAuthenticatedCollectionsRouteWithChildren,
   AdminAuthenticatedOrdersRoute: AdminAuthenticatedOrdersRouteWithChildren,
   AdminAuthenticatedProductsRoute: AdminAuthenticatedProductsRouteWithChildren,
   AdminAuthenticatedIndexRoute: AdminAuthenticatedIndexRoute,
@@ -569,11 +682,26 @@ const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
   CheckoutRouteChildren,
 )
 
+interface CollectionsRouteChildren {
+  CollectionsCollectionSlugRoute: typeof CollectionsCollectionSlugRoute
+  CollectionsIndexRoute: typeof CollectionsIndexRoute
+}
+
+const CollectionsRouteChildren: CollectionsRouteChildren = {
+  CollectionsCollectionSlugRoute: CollectionsCollectionSlugRoute,
+  CollectionsIndexRoute: CollectionsIndexRoute,
+}
+
+const CollectionsRouteWithChildren = CollectionsRoute._addFileChildren(
+  CollectionsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRouteWithChildren,
+  CollectionsRoute: CollectionsRouteWithChildren,
   OrderPublicTokenRoute: OrderPublicTokenRoute,
   ShopProductSlugRoute: ShopProductSlugRoute,
   ShopIndexRoute: ShopIndexRoute,

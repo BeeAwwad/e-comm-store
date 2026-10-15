@@ -1,19 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, desc, eq, ilike, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, ilike, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../../db";
 import {
+  categories,
+  collections,
+  productCategories,
+  productCollections,
   productImages,
   productVariants,
   products,
-  categories,
-  productCategories,
 } from "../../../db/schema";
-import { exists } from "drizzle-orm";
 
 const productFiltersSchema = z.object({
   search: z.string().trim().max(100).optional().default(""),
   category: z.string().trim().max(100).optional().default(""),
+  collection: z.string().trim().max(100).optional().default(""),
   sort: z
     .enum(["featured", "price-asc", "price-desc"])
     .optional()
@@ -30,31 +32,25 @@ export const getProducts = createServerFn({ method: "GET" })
           ? desc(products.priceKobo)
           : desc(products.featured);
 
-    const rows = await db
+    const productRows = await db
       .select({
         id: products.id,
         name: products.name,
         slug: products.slug,
         priceKobo: products.priceKobo,
         featured: products.featured,
-        imageUrl: sql<string | null>`min(${productImages.url})`,
-        totalStock: sql<number>`coalesce(sum(${productVariants.stock}), 0)`,
       })
       .from(products)
-      .leftJoin(productImages, eq(productImages.productId, products.id))
-      .leftJoin(
-        productVariants,
-        and(
-          eq(productVariants.productId, products.id),
-          eq(productVariants.active, true),
-        ),
-      )
       .where(
         and(
+          eq(products.status, "active"),
+
+          data.search ? ilike(products.name, `%${data.search}%`) : undefined,
+
           data.category
             ? exists(
                 db
-                  .select({ id: productCategories.productId })
+                  .select({ productId: productCategories.productId })
                   .from(productCategories)
                   .innerJoin(
                     categories,
@@ -68,10 +64,80 @@ export const getProducts = createServerFn({ method: "GET" })
                   ),
               )
             : undefined,
+
+          data.collection
+            ? exists(
+                db
+                  .select({ productId: productCollections.productId })
+                  .from(productCollections)
+                  .innerJoin(
+                    collections,
+                    eq(collections.id, productCollections.collectionId),
+                  )
+                  .where(
+                    and(
+                      eq(productCollections.productId, products.id),
+                      eq(collections.slug, data.collection),
+                      eq(collections.archived, false),
+                    ),
+                  ),
+              )
+            : undefined,
         ),
       )
-      .groupBy(products.id)
       .orderBy(orderBy, desc(products.createdAt));
 
-    return rows;
+    if (productRows.length === 0) {
+      return [];
+    }
+
+    const productIds = productRows.map((product) => product.id);
+
+    const [images, variants] = await Promise.all([
+      db
+        .select({
+          productId: productImages.productId,
+          url: productImages.url,
+          position: productImages.position,
+        })
+        .from(productImages)
+        .where(inArray(productImages.productId, productIds))
+        .orderBy(asc(productImages.position)),
+
+      db
+        .select({
+          productId: productVariants.productId,
+          stock: productVariants.stock,
+          reservedStock: productVariants.reservedStock,
+        })
+        .from(productVariants)
+        .where(
+          and(
+            inArray(productVariants.productId, productIds),
+            eq(productVariants.active, true),
+          ),
+        ),
+    ]);
+
+    return productRows.map((product) => {
+      const productImagesForProduct = images.filter(
+        (image) => image.productId === product.id,
+      );
+
+      const productVariantsForProduct = variants.filter(
+        (variant) => variant.productId === product.id,
+      );
+
+      const totalStock = productVariantsForProduct.reduce(
+        (total, variant) =>
+          total + Math.max(variant.stock - (variant.reservedStock ?? 0), 0),
+        0,
+      );
+
+      return {
+        ...product,
+        imageUrl: productImagesForProduct[0]?.url ?? null,
+        totalStock,
+      };
+    });
   });
