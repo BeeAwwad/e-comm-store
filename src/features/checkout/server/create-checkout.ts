@@ -34,6 +34,25 @@ const checkoutSchema = z.object({
     .max(30),
 });
 
+function getShippingKobo() {
+  const shippingKobo = Number(process.env.FLAT_SHIPPING_FEE_KOBO ?? 250_000);
+
+  if (!Number.isInteger(shippingKobo) || shippingKobo < 0) {
+    throw new Error("FLAT_SHIPPING_FEE_KOBO must be a valid kobo amount.");
+  }
+
+  return shippingKobo;
+}
+
+export const getCheckoutConfig = createServerFn({
+  method: "GET",
+}).handler(async () => {
+  return {
+    shippingKobo: getShippingKobo(),
+    country: "Nigeria",
+  };
+});
+
 export const createCheckout = createServerFn({
   method: "POST",
 })
@@ -129,7 +148,7 @@ export const createCheckout = createServerFn({
       0,
     );
 
-    const shippingKobo = Number(process.env.FLAT_SHIPPING_FEE_KOBO ?? 250_000);
+    const shippingKobo = getShippingKobo();
 
     const totalKobo = subtotalKobo + shippingKobo;
     const orderNumber = createOrderNumber();
