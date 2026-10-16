@@ -16,6 +16,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CollectionsRouteImport } from './routes/collections'
 import { Route as AdminAuthenticatedRouteImport } from './routes/admin/_authenticated'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout/index'
 import { Route as CheckoutCallbackRouteImport } from './routes/checkout/callback'
 import { Route as CollectionsIndexRouteImport } from './routes/collections/index'
@@ -71,6 +72,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => AdminRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
   id: '/',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRouteWithChildren
   '/collections': typeof CollectionsRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
+  '/api/health': typeof ApiHealthRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/collections/$collectionSlug': typeof CollectionsCollectionSlugRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminAuthenticatedIndexRoute
   '/cart': typeof CartRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/health': typeof ApiHealthRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/collections/$collectionSlug': typeof CollectionsCollectionSlugRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/collections': typeof CollectionsRouteWithChildren
   '/admin/_authenticated': typeof AdminAuthenticatedRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
+  '/api/health': typeof ApiHealthRoute
   '/checkout/callback': typeof CheckoutCallbackRoute
   '/collections/$collectionSlug': typeof CollectionsCollectionSlugRoute
   '/order/$publicToken': typeof OrderPublicTokenRoute
@@ -281,6 +290,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/collections'
     | '/admin/login'
+    | '/api/health'
     | '/checkout/callback'
     | '/collections/$collectionSlug'
     | '/order/$publicToken'
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cart'
     | '/admin/login'
+    | '/api/health'
     | '/checkout/callback'
     | '/collections/$collectionSlug'
     | '/order/$publicToken'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/admin/_authenticated'
     | '/admin/login'
+    | '/api/health'
     | '/checkout/callback'
     | '/collections/$collectionSlug'
     | '/order/$publicToken'
@@ -362,6 +374,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRouteWithChildren
   CollectionsRoute: typeof CollectionsRouteWithChildren
+  ApiHealthRoute: typeof ApiHealthRoute
   OrderPublicTokenRoute: typeof OrderPublicTokenRoute
   ShopProductSlugRoute: typeof ShopProductSlugRoute
   ShopIndexRoute: typeof ShopIndexRoute
@@ -419,6 +432,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/checkout/': {
       id: '/checkout/'
@@ -702,6 +722,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRouteWithChildren,
   CollectionsRoute: CollectionsRouteWithChildren,
+  ApiHealthRoute: ApiHealthRoute,
   OrderPublicTokenRoute: OrderPublicTokenRoute,
   ShopProductSlugRoute: ShopProductSlugRoute,
   ShopIndexRoute: ShopIndexRoute,

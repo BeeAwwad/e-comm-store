@@ -4,6 +4,7 @@ import {
   getAdminProductCategories,
   updateAdminProductCategories,
 } from "#/features/admin/categories/server/categories";
+import { useSaveFeedback } from "#/hooks/use-save-feedback";
 
 export function ProductCategoryEditor({ productId }: { productId: string }) {
   const router = useRouter();
@@ -14,8 +15,8 @@ export function ProductCategoryEditor({ productId }: { productId: string }) {
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const categorySave = useSaveFeedback();
 
   useEffect(() => {
     async function loadCategories() {
@@ -47,8 +48,8 @@ export function ProductCategoryEditor({ productId }: { productId: string }) {
   }
 
   async function saveCategories() {
-    setSaving(true);
     setError("");
+    categorySave.startSaving();
 
     try {
       await updateAdminProductCategories({
@@ -57,14 +58,13 @@ export function ProductCategoryEditor({ productId }: { productId: string }) {
           categoryIds: selectedIds,
         },
       });
-
       await router.invalidate({ sync: true });
+      categorySave.markSaved();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not save categories.",
       );
-    } finally {
-      setSaving(false);
+      categorySave.reset();
     }
   }
 
@@ -109,11 +109,15 @@ export function ProductCategoryEditor({ productId }: { productId: string }) {
 
           <button
             type="button"
-            onClick={() => void saveCategories()}
-            disabled={saving}
+            disabled={categorySave.isSaving}
             className="border border-white/20 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] disabled:opacity-50"
+            onClick={() => void saveCategories()}
           >
-            {saving ? "Saving…" : "Save categories"}
+            {categorySave.status === "saving"
+              ? "Saving…"
+              : categorySave.status === "saved"
+                ? "Saved"
+                : "Save categories"}
           </button>
         </>
       )}

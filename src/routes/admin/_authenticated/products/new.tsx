@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { createAdminProduct } from "#/features/admin/products/server/products";
+import { useSaveFeedback } from "#/hooks/use-save-feedback";
 
 type VariantDraft = {
   sku: string;
@@ -28,7 +29,7 @@ function NewProductPage() {
   const [variants, setVariants] = useState<VariantDraft[]>([emptyVariant()]);
 
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const productCreate = useSaveFeedback();
 
   function addVariant() {
     setVariants((current) => [...current, emptyVariant()]);
@@ -70,7 +71,7 @@ function NewProductPage() {
 
     const form = new FormData(event.currentTarget);
 
-    setSaving(true);
+    productCreate.startSaving();
     setError("");
 
     try {
@@ -94,6 +95,8 @@ function NewProductPage() {
         },
       });
 
+      productCreate.markSaved();
+
       await navigate({
         to: "/admin/products/$productId",
         params: {
@@ -104,7 +107,7 @@ function NewProductPage() {
       setError(
         cause instanceof Error ? cause.message : "Could not create product.",
       );
-      setSaving(false);
+      productCreate.reset();
     }
   }
 
@@ -303,10 +306,14 @@ function NewProductPage() {
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={productCreate.isSaving}
           className="bg-red-600 px-6 py-4 text-xs font-bold uppercase tracking-[0.18em] hover:bg-red-500 disabled:opacity-50"
         >
-          {saving ? "Creating…" : "Create product"}
+          {productCreate.status === "saving"
+            ? "Creating…"
+            : productCreate.status === "saved"
+              ? "Created"
+              : "Create product"}
         </button>
       </form>
     </section>

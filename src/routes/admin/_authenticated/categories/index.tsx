@@ -6,6 +6,7 @@ import {
   getAdminCategories,
   updateAdminCategory,
 } from "#/features/admin/categories/server/categories";
+import { useSaveFeedback } from "#/hooks/use-save-feedback";
 
 export const Route = createFileRoute("/admin/_authenticated/categories/")({
   loader: () => getAdminCategories(),
@@ -17,8 +18,8 @@ function CategoriesPage() {
   const router = useRouter();
 
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const addCategory = useSaveFeedback();
 
   async function refresh() {
     await router.invalidate({ sync: true });
@@ -29,7 +30,7 @@ function CategoriesPage() {
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
 
-    setSaving(true);
+    addCategory.startSaving();
     setError("");
 
     try {
@@ -40,14 +41,16 @@ function CategoriesPage() {
         },
       });
 
-      event.currentTarget.reset();
+      formElement.reset();
+
       await refresh();
+
+      addCategory.markSaved();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not create category.",
       );
-    } finally {
-      setSaving(false);
+      addCategory.reset();
     }
   }
 
@@ -127,10 +130,14 @@ function CategoriesPage() {
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={addCategory.isSaving}
           className="bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-black disabled:opacity-50"
         >
-          {saving ? "Creating…" : "Add category"}
+          {addCategory.status === "saving"
+            ? "Creating…"
+            : addCategory.status === "saved"
+              ? "Created"
+              : "Add category"}
         </button>
       </form>
 

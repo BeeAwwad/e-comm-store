@@ -6,6 +6,7 @@ import {
   updateAdminOrderFulfillment,
 } from "#/features/admin/orders/server/orders";
 import { formatNaira } from "#/lib/utils";
+import { useSaveFeedback } from "#/hooks/use-save-feedback";
 
 export const Route = createFileRoute("/admin/_authenticated/orders/$orderId")({
   loader: async ({ params }) => {
@@ -41,15 +42,15 @@ function OrderDetailPage() {
   const { order, items, payments } = Route.useLoaderData();
   const router = useRouter();
 
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const fulfillmentSave = useSaveFeedback();
 
   async function handleFulfillmentUpdate(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const form = new FormData(event.currentTarget);
 
-    setSaving(true);
+    fulfillmentSave.startSaving();
     setError("");
 
     try {
@@ -72,12 +73,12 @@ function OrderDetailPage() {
       await router.invalidate({
         sync: true,
       });
+      fulfillmentSave.markSaved();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not update order.",
       );
-    } finally {
-      setSaving(false);
+      fulfillmentSave.reset();
     }
   }
 
@@ -302,13 +303,17 @@ function OrderDetailPage() {
                 {error}
               </p>
             )}
-
             <button
               type="submit"
-              disabled={saving}
+              disabled={fulfillmentSave.isSaving}
+
               className="mt-6 w-full bg-red-600 px-5 py-4 text-xs font-bold uppercase tracking-[0.18em] hover:bg-red-500 disabled:opacity-50"
             >
-              {saving ? "Saving…" : "Save fulfillment"}
+              {fulfillmentSave.status === "saving"
+                ? "Saving…"
+                : fulfillmentSave.status === "saved"
+                  ? "Saved"
+                  : "Save fulfillment"}
             </button>
           </form>
         </aside>

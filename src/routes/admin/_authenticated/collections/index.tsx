@@ -5,6 +5,7 @@ import {
   getAdminCollections,
   updateAdminCollection,
 } from "#/features/admin/collections/server/collections";
+import { useSaveFeedback } from "#/hooks/use-save-feedback";
 
 export const Route = createFileRoute("/admin/_authenticated/collections/")({
   loader: () => getAdminCollections(),
@@ -16,8 +17,8 @@ function CollectionsPage() {
   const router = useRouter();
 
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const collectionSave = useSaveFeedback();
 
   async function refresh() {
     await router.invalidate({ sync: true });
@@ -29,7 +30,7 @@ function CollectionsPage() {
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
 
-    setSaving(true);
+    collectionSave.startSaving();
     setError("");
 
     try {
@@ -44,12 +45,12 @@ function CollectionsPage() {
 
       formElement.reset();
       await refresh();
+      collectionSave.markSaved();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not create collection.",
       );
-    } finally {
-      setSaving(false);
+      collectionSave.reset();
     }
   }
 
@@ -125,10 +126,14 @@ function CollectionsPage() {
 
         <button
           type="submit"
-          disabled={saving}
-          className="w-fit bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-black disabled:opacity-50"
+          disabled={collectionSave.isSaving}
+          className="bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-black disabled:opacity-50"
         >
-          {saving ? "Creating…" : "Create collection"}
+          {collectionSave.status === "saving"
+            ? "Creating…"
+            : collectionSave.status === "saved"
+              ? "Created"
+              : "Create collection"}
         </button>
       </form>
 

@@ -10,6 +10,7 @@ import {
 import { formatNaira } from "#/lib/utils";
 import { ProductCategoryEditor } from "#/components/admin/product-category-editor";
 import { ProductCollectionEditor } from "#/components/admin/product-collection-editor";
+import { useSaveFeedback } from "#/hooks/use-save-feedback";
 
 export const Route = createFileRoute(
   "/admin/_authenticated/products/$productId",
@@ -35,17 +36,18 @@ function EditProductPage() {
   const router = useRouter();
 
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
   const [newVariantOpen, setNewVariantOpen] = useState(false);
   const [updatingVariantId, setUpdatingVariantId] = useState<string | null>(
     null,
   );
+  const productSave = useSaveFeedback();
+
   async function handleProductUpdate(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const form = new FormData(event.currentTarget);
 
-    setSaving(true);
+    productSave.startSaving();
     setError("");
 
     try {
@@ -64,12 +66,12 @@ function EditProductPage() {
       await router.invalidate({
         sync: true,
       });
-      setSaving(false);
+      productSave.markSaved();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not update product.",
       );
-      setSaving(false);
+      productSave.reset();
     }
   }
 
@@ -217,12 +219,17 @@ function EditProductPage() {
           </p>
         )}
 
+        <div className="border-t border-white/10 pt-8"></div>
         <button
           type="submit"
-          disabled={saving}
-          className="w-fit bg-red-600 px-6 py-4 text-xs font-bold uppercase tracking-[0.18em] hover:bg-red-500 disabled:opacity-50"
+          disabled={productSave.isSaving}
+          className="w-fit bg-red-600 px-6 py-4 text-xs font-bold uppercase tracking-[0.18em] hover:bg-red-500 disabled:opacity-50 mx-auto"
         >
-          {saving ? "Saving…" : "Save product"}
+          {productSave.status === "saving"
+            ? "Saving…"
+            : productSave.status === "saved"
+              ? "Saved"
+              : "Save product"}
         </button>
       </form>
 

@@ -4,6 +4,7 @@ import {
   getAdminProductCollections,
   updateAdminProductCollections,
 } from "#/features/admin/collections/server/collections";
+import { useSaveFeedback } from "#/hooks/use-save-feedback";
 
 export function ProductCollectionEditor({ productId }: { productId: string }) {
   const router = useRouter();
@@ -14,9 +15,8 @@ export function ProductCollectionEditor({ productId }: { productId: string }) {
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const collectionSave = useSaveFeedback();
 
   async function loadCollections() {
     const result = await getAdminProductCollections({
@@ -42,8 +42,6 @@ export function ProductCollectionEditor({ productId }: { productId: string }) {
   }, [productId]);
 
   function toggleCollection(collectionId: string) {
-    setSaved(false);
-
     setSelectedIds((current) =>
       current.includes(collectionId)
         ? current.filter((id) => id !== collectionId)
@@ -52,8 +50,7 @@ export function ProductCollectionEditor({ productId }: { productId: string }) {
   }
 
   async function saveCollections() {
-    setSaving(true);
-    setSaved(false);
+    collectionSave.startSaving();
     setError("");
 
     try {
@@ -66,15 +63,14 @@ export function ProductCollectionEditor({ productId }: { productId: string }) {
 
       // The server response is the database truth.
       setSelectedIds(result.selectedCollectionIds);
-      setSaved(true);
 
       await router.invalidate({ sync: true });
+      collectionSave.markSaved();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not save collections.",
       );
-    } finally {
-      setSaving(false);
+      collectionSave.reset();
     }
   }
 
@@ -115,22 +111,18 @@ export function ProductCollectionEditor({ productId }: { productId: string }) {
             })}
           </div>
 
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void saveCollections()}
-              className="border border-white/20 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] disabled:opacity-50"
-            >
-              {saving ? "Saving…" : "Save collections"}
-            </button>
-
-            {saved ? (
-              <span className="text-xs uppercase tracking-[0.12em] text-green-400">
-                Saved
-              </span>
-            ) : null}
-          </div>
+          <button
+            type="button"
+            disabled={collectionSave.isSaving}
+            className="border border-white/20 px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] disabled:opacity-50"
+            onClick={() => void saveCollections()}
+          >
+            {collectionSave.status === "saving"
+              ? "Saving…"
+              : collectionSave.status === "saved"
+                ? "Saved"
+                : "Save collections"}
+          </button>
         </>
       )}
 
