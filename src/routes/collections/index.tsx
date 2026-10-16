@@ -29,7 +29,7 @@ function CollectionsPage() {
                 params={{
                   collectionSlug: collection.slug,
                 }}
-                className="group min-h-64 border border-white/10 p-6 transition hover:border-white"
+                className="group min-h-64 border border-white/10 p-6 transition hover:border-white flex flex-col justify-between"
               >
                 <p className="text-xs uppercase tracking-[0.2em] text-red-500">
                   Shop collection
